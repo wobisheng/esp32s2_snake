@@ -1,3 +1,7 @@
+/*
+    作者:发明家
+    日期:2022年4月11日
+*/
 #include "LedControl.h"
 #include <cmath>
 #include <ArduinoQueue.h>
@@ -6,20 +10,22 @@
 #include <WebServer.h>
 #define MAX_SIZE 65
 
-LedControl lc=LedControl(36,40,26,1);
-auto timer = timer_create_default();
-WebServer server(80);
+LedControl lc=LedControl(36,40,26,1);//实例化点阵屏对象，通过构造函数传入IO
+auto timer = timer_create_default();//实例化定时器
+WebServer server(80);//webserver
 
-struct Node
+struct Node//蛇体节点
 {
   int x;
   int y;
 };
 
-bool eat_s = false;
-int len = 0,point[2] = {5,5};
-char Direction = 'd';
-int snake[MAX_SIZE][2] = {0};
+bool eat_s = false;//Gen_point()与food_judge()通信
+int len = 0,point[2] = {5,5};//蛇体长度与初始食物位置
+char Direction = 'd';//蛇移动方向
+int snake[MAX_SIZE][2] = {0};//存储蛇体坐标数组
+String APNAME = "RC1";
+String PASSWORD = "";
 const char PAGE_INDEX[] PROGMEM= R"=====(
 <!DOCTYPE html>
 <html>
@@ -74,17 +80,17 @@ function pause()
 </html>
 )=====";
 
-ArduinoQueue<Node> body(MAX_SIZE);
+ArduinoQueue<Node> body(MAX_SIZE);//蛇体数据队列
 
-void Draw(int *x,int *y,int Len);
-bool AutoMove(void *);
-void Move(char receive);
-void bound_judge();
-void food_judge(int x,int y);
-void Gen_point();
-void Convert();
-void Gen_map();
-void handleRoot();
+void Draw(int *x,int *y,int Len);//点阵屏绘图
+bool AutoMove(void *);//自动移动
+void Move(char receive);//移动函数
+void bound_judge();//判断边界以及是否撞到身体
+void food_judge(int x,int y);//判断吃到食物
+void Gen_point();//生成食物
+void Convert();//给Draw传参，队列重新生成，蛇体数据清0
+void Gen_map();//生成蛇体坐标数据
+void handleRoot();//处理网页信息
 
 void setup() 
 {
@@ -96,7 +102,7 @@ void setup()
   body.enqueue(first);
   timer.every(500, AutoMove);
   WiFi.mode(WIFI_AP);
-  WiFi.softAP("RC1", "");
+  WiFi.softAP(APNAME, PASSWORD);
   server.on("/", handleRoot);
   server.begin();
   Serial.println("begin");

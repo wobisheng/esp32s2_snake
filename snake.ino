@@ -1,7 +1,3 @@
-/*
-    作者:发明家
-    日期:2022年4月11日
-*/
 #include "LedControl.h"
 #include <cmath>
 #include <ArduinoQueue.h>
@@ -14,18 +10,18 @@ LedControl lc=LedControl(36,40,26,1);//实例化点阵屏对象，通过构造�
 auto timer = timer_create_default();//实例化定时器
 WebServer server(80);//webserver
 
-struct Node//蛇体节点
+struct Node
 {
   int x;
   int y;
 };
 
 bool eat_s = false;//Gen_point()与food_judge()通信
+bool infi = false;//无限地图
 int len = 0,point[2] = {5,5};//蛇体长度与初始食物位置
 char Direction = 'd';//蛇移动方向
 int snake[MAX_SIZE][2] = {0};//存储蛇体坐标数组
-String APNAME = "RC1";
-String PASSWORD = "";
+int form = 0;
 const char PAGE_INDEX[] PROGMEM= R"=====(
 <!DOCTYPE html>
 <html>
@@ -68,6 +64,34 @@ function pause()
   xmlhttp.open("GET","/?position=p",true);
   xmlhttp.send();
 }
+function easy()
+{
+  var xmlhttp;
+  xmlhttp=new XMLHttpRequest();
+  xmlhttp.open("GET","/?position=e",true);
+  xmlhttp.send();
+}
+function normal()
+{
+  var xmlhttp;
+  xmlhttp=new XMLHttpRequest();
+  xmlhttp.open("GET","/?position=n",true);
+  xmlhttp.send();
+}
+function hard()
+{
+  var xmlhttp;
+  xmlhttp=new XMLHttpRequest();
+  xmlhttp.open("GET","/?position=h",true);
+  xmlhttp.send();
+}
+function infinite()
+{
+  var xmlhttp;
+  xmlhttp=new XMLHttpRequest();
+  xmlhttp.open("GET","/?position=f",true);
+  xmlhttp.send();
+}
 </script>
 <div>
 <center><button type="button" onclick="up()">up</button></center>
@@ -75,6 +99,10 @@ function pause()
 <center><button type="button" onclick="down()">down</button></center>
 <br>
 <center><button type="button" onclick="pause()">pause</button></center>
+<center><button type="button" onclick="easy()">easy</button></center>
+<center><button type="button" onclick="normal()">normal</button></center>
+<center><button type="button" onclick="hard()">hard</button></center>
+<center><button type="button" onclick="infinite()">infinite</button></center>
 </div>
 </body>
 </html>
@@ -102,7 +130,7 @@ void setup()
   body.enqueue(first);
   timer.every(500, AutoMove);
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(APNAME, PASSWORD);
+  WiFi.softAP("RC1", "");
   server.on("/", handleRoot);
   server.begin();
   Serial.println("begin");
@@ -193,11 +221,23 @@ void bound_judge()
   bool Status = true;
   for (int i =0; i < len; i ++)
   {
-    if (snake[i][0] < 0 || snake[i][0] > 7 || snake[i][1] > 7||snake[i][1] < 0) {Status = false;}
-    if (i>=1&&(snake[0][1] == snake[i][1])&&(snake[0][0] == snake[i][0])) {Status = false;}
-    if (snake[0][0] == snake[1][0]&&snake[0][1] == snake[1][1]) {Status = false;}
+    Serial.println(infi);
+    if (!infi)
+    {
+      if (snake[i][0] < 0 || snake[i][0] > 7 || snake[i][1] > 7||snake[i][1] < 0) {Status = false;}
+      if (i>=1&&(snake[0][1] == snake[i][1])&&(snake[0][0] == snake[i][0])) {Status = false;}
+      if (snake[0][0] == snake[1][0]&&snake[0][1] == snake[1][1]) {Status = false;}
+    }
+    else
+    {
+      if (snake[i][0] < 0) {snake[i][0] += 8;}
+      if (snake[i][1] < 0) {snake[i][1] += 8;}
+      if (snake[i][0] > 7) {snake[i][0] -= 8;}
+      if (snake[i][1] > 7) {snake[i][1] -= 8;}
+    }
   }
-  if (Status) 
+  Serial.println(Status);
+  if (Status)
   Convert();
   else 
   {
@@ -264,7 +304,9 @@ void Draw(int *x,int *y,int Len)
     }
     for (int i = 0; i <=7; i ++)
     {
-     lc. setColumn(0,i,Map[i]);
+     if (form == 0) {lc. setColumn(0,i,Map[i]);}
+     else if(form == 255) {lc. setColumn(0,i,form - Map[i]);}
+     else {lc. setColumn(0,i,Map[i]^B00001111);}
     }
     delay(200);
 }
@@ -277,6 +319,10 @@ void handleRoot()
   char temp[message.length()+1];
   strcpy(temp,message.c_str());
   if (temp[0] =='u'||temp[0]=='d'||temp[0]=='l'||temp[0]=='r'||temp[0] =='p') {Direction = temp[0];}
+  if (temp[0] =='e') {form = 0;}
+  if (temp[0] =='n') {form = 15;}
+  if (temp[0] =='h') {form = 255;}
+  if (temp[0] == 'f') {infi= true;}
   while (Direction == 'p')
   {
     server.handleClient();

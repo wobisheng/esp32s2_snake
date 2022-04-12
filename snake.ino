@@ -30,66 +30,30 @@ const char PAGE_INDEX[] PROGMEM= R"=====(
 <body>
 <script>
 function up()
-{
-  var xmlhttp;
-  xmlhttp=new XMLHttpRequest();
-  xmlhttp.open("GET","/?position=u",true);
-  xmlhttp.send();
-}
+{select("u");}
 function down()
-{
-  var xmlhttp;
-  xmlhttp=new XMLHttpRequest();
-  xmlhttp.open("GET","/?position=d",true);
-  xmlhttp.send();
-}
+{select("d");}
 function right()
-{
-  var xmlhttp;
-  xmlhttp=new XMLHttpRequest();
-  xmlhttp.open("GET","/?position=r",true);
-  xmlhttp.send();
-}
+{select("r");}
 function left()
-{
-  var xmlhttp;
-  xmlhttp=new XMLHttpRequest();
-  xmlhttp.open("GET","/?position=l",true);
-  xmlhttp.send();
-}
+{select("l");}
 function pause()
-{
-  var xmlhttp;
-  xmlhttp=new XMLHttpRequest();
-  xmlhttp.open("GET","/?position=p",true);
-  xmlhttp.send();
-}
+{select("p");}
 function easy()
-{
-  var xmlhttp;
-  xmlhttp=new XMLHttpRequest();
-  xmlhttp.open("GET","/?position=e",true);
-  xmlhttp.send();
-}
+{select("e");}
 function normal()
-{
-  var xmlhttp;
-  xmlhttp=new XMLHttpRequest();
-  xmlhttp.open("GET","/?position=n",true);
-  xmlhttp.send();
-}
+{select("n");}
 function hard()
-{
-  var xmlhttp;
-  xmlhttp=new XMLHttpRequest();
-  xmlhttp.open("GET","/?position=h",true);
-  xmlhttp.send();
-}
+{ select("h");}
 function infinite()
+{select("f");}
+function limited()
+{ select("m");}
+function select(message)
 {
-  var xmlhttp;
   xmlhttp=new XMLHttpRequest();
-  xmlhttp.open("GET","/?position=f",true);
+  var url = "/?position=" + message;
+  xmlhttp.open("GET",url,true);
   xmlhttp.send();
 }
 </script>
@@ -103,6 +67,7 @@ function infinite()
 <center><button type="button" onclick="normal()">normal</button></center>
 <center><button type="button" onclick="hard()">hard</button></center>
 <center><button type="button" onclick="infinite()">infinite</button></center>
+<center><button type="button" onclick="limited()">limited</button></center>
 </div>
 </body>
 </html>
@@ -323,6 +288,7 @@ void handleRoot()
   if (temp[0] =='n') {form = 15;}
   if (temp[0] =='h') {form = 255;}
   if (temp[0] == 'f') {infi= true;}
+  if (temp[0] == 'm') {infi= false;}
   while (Direction == 'p')
   {
     server.handleClient();

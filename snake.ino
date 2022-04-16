@@ -1,3 +1,7 @@
+/*
+      作者:发明家
+      时间:2020.4.11
+*/
 #include "LedControl.h"
 #include <cmath>
 #include <ArduinoQueue.h>
@@ -52,7 +56,7 @@ function limited()
 function select(message)
 {
   xmlhttp=new XMLHttpRequest();
-  var url = "/?position=" + message;
+  var url =  "/?position=" + message;
   xmlhttp.open("GET",url,true);
   xmlhttp.send();
 }
@@ -190,8 +194,6 @@ void bound_judge()
     if (!infi)
     {
       if (snake[i][0] < 0 || snake[i][0] > 7 || snake[i][1] > 7||snake[i][1] < 0) {Status = false;}
-      if (i>=1&&(snake[0][1] == snake[i][1])&&(snake[0][0] == snake[i][0])) {Status = false;}
-      if (snake[0][0] == snake[1][0]&&snake[0][1] == snake[1][1]) {Status = false;}
     }
     else
     {
@@ -200,6 +202,8 @@ void bound_judge()
       if (snake[i][0] > 7) {snake[i][0] -= 8;}
       if (snake[i][1] > 7) {snake[i][1] -= 8;}
     }
+    if (i>=1&&(snake[0][1] == snake[i][1])&&(snake[0][0] == snake[i][0])) {Status = false;}
+    if (snake[0][0] == snake[1][0]&&snake[0][1] == snake[1][1]) {Status = false;}
   }
   Serial.println(Status);
   if (Status)
